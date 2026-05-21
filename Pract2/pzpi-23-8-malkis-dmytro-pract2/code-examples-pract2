@@ -1,1 +1,38 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import java.util.Arrays;
+import java.util.List;
+
+@RestController
+public class VideoRecommendationService {
+
+@Autowired
+private RestTemplate restTemplate;
+
+// Запит до зовнішнього сервісу рекомендацій відео
+@GetMapping("/videos/{userId}")
+@CircuitBreaker(name = "youtubeRecommendationService",
+fallbackMethod = "getFallbackVideos")
+public List<String> getRecommendedVideos(@PathVariable String userId) {
+
+// Імітація виклику зовнішнього мікросервісу рекомендацій
+return restTemplate.getForObject(
+"http://recommendation-service/api/videos/" + userId,
+List.class
+);
+}
+
+// Резервний метод при відмові recommendation-service
+public List<String> getFallbackVideos(String userId, Exception e) {
+
+// Повернення стандартного списку популярних відео
+return Arrays.asList(
+"Популярне відео 1",
+"Популярне відео 2",
+"Популярне відео 3"
+);
+}
+}
 
